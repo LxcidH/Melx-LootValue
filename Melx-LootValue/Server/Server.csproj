@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>MelxLootValueServer</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <!-- Point directly to the runtime DLLs in your SPT_Runtime folder -->
+  <ItemGroup>
+    <Reference Include="SPTarkov.Server.Core">
+      <HintPath>D:\SP_Tushonka\SPT_Runtime\SPTarkov.Server.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="SPTarkov.DI">
+      <HintPath>D:\SP_Tushonka\SPT_Runtime\SPTarkov.DI.dll</HintPath>
+    </Reference>
+    <Reference Include="SPTarkov.Common">
+      <HintPath>D:\SP_Tushonka\SPT_Runtime\SPTarkov.Common.dll</HintPath>
+    </Reference>
+    <Reference Include="SemanticVersioning">
+      <HintPath>D:\SP_Tushonka\SPT_Runtime\SemanticVersioning.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Automatically copy output DLL to the user/mods directory on build -->
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Copy SourceFiles="$(TargetDir)$(TargetFileName)" DestinationFolder="D:\SP_Tushonka\SPT_Runtime\user\mods\Melx-LootValue\" />
+  </Target>
+
+</Project>
