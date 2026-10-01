@@ -5,25 +5,37 @@ using BepInEx.Logging;
 using HarmonyLib;
 using Newtonsoft.Json;
 using SPT.Common.Http;
+using UnityEngine; // Required for using the Color type structure
 
 namespace MelxLootValueClient;
 
-[BepInPlugin("com.melx.lootvalue", "Melx-LootValue", "1.0.0")]
+[BepInPlugin("com.melx.lootvalue", "Melx-LootValue", "1.1.0")]
 public class Plugin : BaseUnityPlugin
 {
+    public static Plugin Instance { get; private set; } = null!;
+    
     public static ManualLogSource Log { get; private set; } = null!;
     public static Dictionary<string, ItemValueData> PriceCache { get; private set; } = new();
 
+    public Color LowLevelColor { get; set; } = Color.white;
+    public Color MedLevelColor { get; set; } = Color.yellow;
+    public Color HighLevelColor { get; set; } = Color.red;
+    public int MedThreshold { get; set; } = 10000;
+    public int HighThreshold { get; set; } = 100000;
+
     private void Awake()
     {
+        Instance = this;
         Log = Logger;
 
-        // 1. Download price cache from custom SPT server endpoint
+        LoadSavedSettings();
+
         FetchPricesFromServer();
 
-        // 2. Register Harmony hooks for UI display
         var harmony = new Harmony("com.melx.lootvalue");
         harmony.PatchAll();
+
+        gameObject.AddComponent<LootValueGUI>();
 
         Log.LogInfo("[Melx-LootValue] Client mod loaded successfully.");
     }
@@ -32,12 +44,10 @@ public class Plugin : BaseUnityPlugin
     {
         try
         {
-            // RequestHandler automatically includes localhost host/port and current session ID
             string json = RequestHandler.GetJson("/melx-lootvalue/prices");
 
             if (!string.IsNullOrEmpty(json))
             {
-                // Deserialize using the SPT response envelope wrapper to safely extract 'data'
                 var response = JsonConvert.DeserializeObject<SptResponseWrapper<Dictionary<string, ItemValueData>>>(json);
 
                 if (response != null && response.err == 0 && response.data != null)
@@ -60,9 +70,25 @@ public class Plugin : BaseUnityPlugin
             Log.LogError($"[Melx-LootValue] Error communicating with server: {ex.Message}");
         }
     }
+        private void LoadSavedSettings()
+    {
+        try
+        {
+            var savedData = ConfigManager.LoadConfig();
+            
+            LowLevelColor  = new Color(savedData.LowR, savedData.LowG, savedData.LowB, 1f);
+            MedLevelColor  = new Color(savedData.MedR, savedData.MedG, savedData.MedB, 1f);
+            HighLevelColor = new Color(savedData.HighR, savedData.HighG, savedData.HighB, 1f);
+            MedThreshold = savedData.MedThreshold;
+            HighThreshold = savedData.HighThreshold;
+        }
+        catch (Exception ex)
+        {
+            Log.LogWarning($"[Melx-LootValue] Could not populate saved color preferences, fallback to standard profiles: {ex.Message}");
+        }
+    }
 }
 
-// Helper wrapper classes matching your server-side payload structure
 public class SptResponseWrapper<T>
 {
     public int err { get; set; }

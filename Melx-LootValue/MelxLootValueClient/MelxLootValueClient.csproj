@@ -46,6 +46,13 @@
     <Reference Include="UnityEngine.UI">
       <HintPath>D:\SP_Tushonka\EscapeFromTarkov_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>D:\SP_Tushonka\EscapeFromTarkov_Data\Managed\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>D:\SP_Tushonka\EscapeFromTarkov_Data\Managed\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+
   </ItemGroup>
 
   <!-- Automatically copy output DLL to the BepInEx plugins directory on build -->

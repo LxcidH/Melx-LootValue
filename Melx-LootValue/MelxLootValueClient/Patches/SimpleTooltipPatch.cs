@@ -24,7 +24,6 @@ public static class SimpleTooltipPatch
                 var size = item.CalculateCellSize();
                 int totalSlots = Mathf.Max(1, size.X * size.Y);
 
-                // Explicitly cast double to int to resolve CS0266
                 int fleaPrice = (int)valueData.FleaPrice;
                 int traderPrice = (int)valueData.BestTraderPrice;
 
@@ -47,34 +46,36 @@ public static class SimpleTooltipPatch
     {
         if (totalPrice <= 0) return "N/A";
 
-        // Color coding rule based on total price threshold
+        var config = Plugin.Instance; 
+
+        string lowHex  = $"#{ColorUtility.ToHtmlStringRGB(config.LowLevelColor)}";
+        string medHex  = $"#{ColorUtility.ToHtmlStringRGB(config.MedLevelColor)}";
+        string highHex = $"#{ColorUtility.ToHtmlStringRGB(config.HighLevelColor)}";
+
+        // --- DYNAMIC THRESHOLD CHECK ---
         string colorHex = totalPrice switch
         {
-            >= 100000 => "#FF4444", // Red (100k+)
-            >= 10000  => "#FFD700", // Yellow (10k - 100k)
-            _         => "#FFFFFF"  // White (0 - 10k)
+            _ when totalPrice >= config.HighThreshold => highHex,
+            _ when totalPrice >= config.MedThreshold  => medHex,
+            _ => lowHex
         };
 
         string priceStr = $"<color={colorHex}>{totalPrice:N0} ₽</color>";
 
-        // Append per-slot calculation if item takes up more than 1 slot
         if (slots > 1)
         {
+            // --- DYNAMIC PER-SLOT CHECK ---
             string perSlotColorHex = pricePerSlot switch
             {
-                >= 100000 => "#FF4444",
-                >= 10000  => "#FFD700",
-                _         => "#FFFFFF"
+                _ when pricePerSlot >= config.HighThreshold => highHex,
+                _ when pricePerSlot >= config.MedThreshold  => medHex,
+                _ => lowHex
             };
 
             priceStr += $" (<color={perSlotColorHex}>{pricePerSlot:N0} ₽/s</color>)";
         }
 
-        if (!string.IsNullOrEmpty(traderName))
-        {
-            priceStr += $" ({traderName})";
-        }
-
+        if (!string.IsNullOrEmpty(traderName)) priceStr += $" ({traderName})";
         return priceStr;
     }
 }
